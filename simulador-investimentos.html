@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InvestSim — Simulador de Investimentos</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --verde: #00b37e;
+    --verde-escuro: #065e3a;
+    --verde-claro: #d4f7eb;
+    --azul: #1a56db;
+    --azul-claro: #e0eaff;
+    --laranja: #d97706;
+    --laranja-claro: #fef3c7;
+    --vermelho: #e02424;
+    --vermelho-claro: #fde8e8;
+    --roxo: #7e3af2;
+    --roxo-claro: #edebff;
+    --cinza-100: #f3f4f6;
+    --cinza-200: #e5e7eb;
+    --cinza-400: #9ca3af;
+    --cinza-600: #4b5563;
+    --cinza-800: #1f2937;
+    --bg: #0a0f1e;
+    --bg2: #111827;
+    --bg3: #1a2236;
+    --borda: rgba(255,255,255,0.08);
+    --txt: #f9fafb;
+    --txt-sec: #9ca3af;
+    --accent: #00b37e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--txt);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--borda);
+    padding: 0 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-inner {
+    max-width: 1300px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+
+  .logo span { color: var(--txt); }
+
+  .data-badge {
+    font-size: 12px;
+    background: rgba(0,179,126,0.15);
+    color: var(--accent);
+    border: 1px solid rgba(0,179,126,0.3);
+    padding: 4px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .dot-pulse {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .main-wrap {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .hero {
+    text-align: center;
+    padding: 3rem 0 2rem;
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.6rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .hero p {
+    color: var(--txt-sec);
+    font-size: 1.05rem;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg3);
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    padding: 4px;
+    margin: 2rem 0 1.5rem;
+    overflow-x: auto;
+  }
+
+  .tab {
+    flex: 1;
+    min-width: 120px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--txt-sec);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .tab.active {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .tab:hover:not(.active) {
+    background: var(--borda);
+    color: var(--txt);
+  }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .panel {
+    background: var(--bg2);
+    border: 1px solid var(--borda);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .panel h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel h2 .icon {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--txt-sec);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  .form-group input, .form-group select {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--borda);
+    border-radius: 8px;
+    color: var(--txt);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-group input:focus, .form-group select:focus {
+    border-color: var(--accent);
+  }
+
+  .form-group select option { background: var(--bg2); }
+
+  .btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 28px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .btn:hover { opacity: 0.9; }
+  .btn:active { transform: scale(0.99); }
+
+  .btn-sec {
+    background: transparent;
+    border: 1px solid var(--borda);
+    color: var(--txt);
+  }
+
+  .btn-sec:hover { background: var(--borda); }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .metric-card {
+    background: var(--bg3);
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+  }
+
+  .metric-card .label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--txt-sec);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  .metric-card .value {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--txt);
+  }
+
+  .metric-card .value.green { color: var(--verde); }
+  .metric-card .value.orange { color: var(--laranja); }
+
+  .metric-card .sub {
+    font-size: 12px;
+    color: var(--txt-sec);
+    margin-top: 2px;
+  }
+
+  .chart-wrap {
+    position: relative;
+    height: 320px;
+    width: 100%;
+  }
+
+  .assets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  .asset-card {
+    background: var(--bg3);
+    border: 1px solid var(--borda);
+    border-radius: 14px;
+    padding: 1.25rem;
+    transition: border-color 0.2s;
+  }
+
+  .asset-card:hover { border-color: var(--accent); }
+
+  .asset-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .asset-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  .asset-tag {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  .tag-rf { background: rgba(0,179,126,0.15); color: var(--verde); }
+  .tag-rv { background: rgba(124,58,237,0.15); color: #a78bfa; }
+  .tag-fii { background: rgba(217,119,6,0.15); color: #fbbf24; }
+
+  .asset-rate {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 0.25rem;
+  }
+
+  .asset-desc {
+    font-size: 13px;
+    color: var(--txt-sec);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+
+  .asset-bar-bg {
+    height: 5px;
+    background: var(--borda);
+    border-radius: 3px;
+    margin-bottom: 0.75rem;
+  }
+
+  .asset-bar-fill {
+    height: 5px;
+    border-radius: 3px;
+    background: var(--accent);
+    transition: width 0.8s;
+  }
+
+  .asset-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+  }
+
+  .asset-stat-label { color: var(--txt-sec); }
+  .asset-stat-val { font-weight: 500; }
+
+  .scenario-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 700px) {
+    .scenario-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 1.8rem; }
+  }
+
+  .scenario-card {
+    border: 1px solid var(--borda);
+    border-radius: 14px;
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .scenario-card.pessimista { background: rgba(224,36,36,0.05); }
+  .scenario-card.neutro { background: rgba(0,179,126,0.05); border-color: rgba(0,179,126,0.3); }
+  .scenario-card.otimista { background: rgba(26,86,219,0.05); }
+
+  .scenario-card:hover { transform: translateY(-2px); }
+
+  .sc-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+
+  .sc-label.red { color: var(--vermelho); }
+  .sc-label.green { color: var(--verde); }
+  .sc-label.blue { color: var(--azul); }
+
+  .sc-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .sc-desc {
+    font-size: 13px;
+    color: var(--txt-sec);
+    line-height: 1.5;
+  }
+
+  .sc-indicators {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .sc-ind {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+  }
+
+  .sc-ind-label { color: var(--txt-sec); }
+
+  .news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+
+  .news-card {
+    background: var(--bg3);
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    padding: 1.2rem;
+  }
+
+  .news-source {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .news-title {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+
+  .news-body {
+    font-size: 13px;
+    color: var(--txt-sec);
+    line-height: 1.5;
+  }
+
+  .news-date {
+    font-size: 11px;
+    color: var(--txt-sec);
+    margin-top: 0.75rem;
+  }
+
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .compare-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--txt-sec);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--borda);
+  }
+
+  .compare-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--borda);
+    vertical-align: middle;
+  }
+
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  .risk-baixo { background: rgba(0,179,126,0.15); color: var(--verde); }
+  .risk-medio { background: rgba(217,119,6,0.15); color: #fbbf24; }
+  .risk-alto { background: rgba(224,36,36,0.15); color: #f87171; }
+
+  .progress-mini {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--borda);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--accent);
+  }
+
+  .legend-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 1rem;
+    font-size: 12px;
+    color: var(--txt-sec);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 2px;
+  }
+
+  .summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--borda);
+  }
+
+  .summary-row:last-child { border-bottom: none; }
+
+  .selic-banner {
+    background: linear-gradient(135deg, rgba(0,179,126,0.1), rgba(26,86,219,0.08));
+    border: 1px solid rgba(0,179,126,0.25);
+    border-radius: 14px;
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .selic-item {
+    text-align: center;
+  }
+
+  .selic-label {
+    font-size: 12px;
+    color: var(--txt-sec);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+
+  .selic-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+  }
+
+  .selic-value.green { color: var(--verde); }
+  .selic-value.blue { color: #60a5fa; }
+  .selic-value.yellow { color: #fbbf24; }
+  .selic-value.orange { color: #fb923c; }
+
+  .selic-sub {
+    font-size: 11px;
+    color: var(--txt-sec);
+    margin-top: 2px;
+  }
+
+  .divider {
+    width: 1px;
+    height: 50px;
+    background: var(--borda);
+  }
+
+  @media (max-width: 600px) { .divider { display: none; } }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">Invest<span>Sim</span></div>
+    <div class="data-badge">
+      <div class="dot-pulse"></div>
+      Dados: Abril 2026
+    </div>
+  </div>
+</header>
+
+<div class="main-wrap">
+
+  <div class="hero">
+    <h1>Simule seus <em>investimentos</em><br>com dados reais de 2026</h1>
+    <p>Renda fixa, FIIs e ações — compare cenários, projete aportes mensais e tome decisões inteligentes.</p>
+  </div>
+
+  <!-- INDICADORES REAIS -->
+  <div class="selic-banner">
+    <div class="selic-item">
+      <div class="selic-label">Taxa Selic</div>
+      <div class="selic-value green">14,75%</div>
+      <div class="selic-sub">ao ano · Pós 1º corte (mar/26)</div>
+    </div>
+    <div class="divider"></div>
+    <div class="selic-item">
+      <div class="selic-label">CDI</div>
+      <div class="selic-value blue">14,79%</div>
+      <div class="selic-sub">ao ano · fonte: Investidor10</div>
+    </div>
+    <div class="divider"></div>
+    <div class="selic-item">
+      <div class="selic-label">IPCA projetado 2026</div>
+      <div class="selic-value yellow">4,80%</div>
+      <div class="selic-sub">Focus 20/04/2026 · acima da meta</div>
+    </div>
+    <div class="divider"></div>
+    <div class="selic-item">
+      <div class="selic-label">Ibovespa previsto</div>
+      <div class="selic-value orange">192 mil</div>
+      <div class="selic-sub">pts · projeção mercado 2026</div>
+    </div>
+    <div class="divider"></div>
+    <div class="selic-item">
+      <div class="selic-label">Câmbio USD/BRL</div>
+      <div class="selic-value blue">R$ 5,30</div>
+      <div class="selic-sub">foco abr/26</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('simular')">Simulador</button>
+    <button class="tab" onclick="showTab('ativos')">Ativos</button>
+    <button class="tab" onclick="showTab('comparar')">Comparar</button>
+    <button class="tab" onclick="showTab('cenarios')">Cenários</button>
+    <button class="tab" onclick="showTab('mercado')">Mercado</button>
+  </div>
+
+  <!-- ===== SIMULADOR ===== -->
+  <div id="simular" class="section active">
+    <div class="panel">
+      <h2><span class="icon" style="background:rgba(0,179,126,0.15)">💰</span> Parâmetros da Simulação</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Aporte Inicial (R$)</label>
+          <input type="number" id="aporte-inicial" value="10000" min="0" step="100">
+        </div>
+        <div class="form-group">
+          <label>Aporte Mensal (R$)</label>
+          <input type="number" id="aporte-mensal" value="500" min="0" step="50">
+        </div>
+        <div class="form-group">
+          <label>Período (meses)</label>
+          <input type="number" id="periodo" value="60" min="1" max="600">
+        </div>
+        <div class="form-group">
+          <label>Investimento</label>
+          <select id="tipo-invest">
+            <option value="cdb100">CDB 100% CDI</option>
+            <option value="cdb110">CDB 110% CDI</option>
+            <option value="cdb120">CDB 120% CDI</option>
+            <option value="selic">Tesouro Selic</option>
+            <option value="ipca7">Tesouro IPCA+ 7% a.a.</option>
+            <option value="prefixado13">Tesouro Prefixado 13%</option>
+            <option value="fii">FIIs — Dividend yield ~10,5%</option>
+            <option value="acoes">Ações — Ibovespa projetado</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>IR (tabela regressiva)</label>
+          <select id="aliquota-ir">
+            <option value="0.225">22,5% — até 6 meses</option>
+            <option value="0.20">20% — 6 a 12 meses</option>
+            <option value="0.175">17,5% — 12 a 24 meses</option>
+            <option value="0.15" selected>15% — acima de 24 meses</option>
+            <option value="0">Isento (LCI/LCA/FII)</option>
+          </select>
+        </div>
+        <div class="form-group" style="display:flex;flex-direction:column;justify-content:flex-end;">
+          <button class="btn" onclick="simular()">Calcular Simulação</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="resultado-section" style="display:none">
+      <div class="results-grid" id="metrics-grid"></div>
+      <div class="panel">
+        <h2><span class="icon" style="background:rgba(26,86,219,0.15)">📈</span> Crescimento do Patrimônio</h2>
+        <div class="legend-row" id="chart-legend"></div>
+        <div class="chart-wrap">
+          <canvas id="growthChart" role="img" aria-label="Gráfico de crescimento do patrimônio ao longo do tempo"></canvas>
+        </div>
+      </div>
+      <div class="panel">
+        <h2><span class="icon" style="background:rgba(217,119,6,0.15)">📊</span> Composição Final</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:center">
+          <div class="chart-wrap" style="height:220px">
+            <canvas id="pieChart" role="img" aria-label="Gráfico de composição do patrimônio"></canvas>
+          </div>
+          <div id="pie-summary"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ATIVOS ===== -->
+  <div id="ativos" class="section">
+    <div class="panel">
+      <h2><span class="icon" style="background:rgba(0,179,126,0.15)">🏦</span> Renda Fixa — Taxas Atuais (Abril 2026)</h2>
+      <div class="assets-grid" id="rf-grid"></div>
+    </div>
+    <div class="panel">
+      <h2><span class="icon" style="background:rgba(124,58,237,0.15)">🏢</span> Renda Variável — FIIs e Ações</h2>
+      <div class="assets-grid" id="rv-grid"></div>
+    </div>
+  </div>
+
+  <!-- ===== COMPARAR ===== -->
+  <div id="comparar" class="section">
+    <div class="panel">
+      <h2><span class="icon" style="background:rgba(26,86,219,0.15)">⚖️</span> Comparação por Valor Final (R$ 10k inicial + R$ 500/mês · 5 anos)</h2>
+      <div class="chart-wrap" style="height:380px">
+        <canvas id="compareBar" role="img" aria-label="Comparativo de retorno entre diferentes investimentos"></canvas>
+      </div>
+    </div>
+    <div class="panel">
+      <h2><span class="icon" style="background:rgba(0,179,126,0.15)">📋</span> Tabela Detalhada</h2>
+      <div style="overflow-x:auto">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>Investimento</th>
+              <th>Taxa Bruta</th>
+              <th>Retorno Líquido</th>
+              <th>Risco</th>
+              <th>Liquidez</th>
+              <th>Rentabilidade relativa</th>
+            </tr>
+          </thead>
+          <tbody id="compare-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CENÁRIOS ===== -->
+  <div id="cenarios" class="section">
+    <div class="panel">
+      <h2><span class="icon" style="background:rgba(217,119,6,0.15)">🌐</span> Cenários Macro — Brasil e Mundo (Abril 2026)</h2>
+      <div class="scenario-grid">
+        <div class="scenario-card pessimista">
+          <div class="sc-label red">Pessimista</div>
+          <div class="sc-title">Estagflação Global</div>
+          <div class="sc-desc">Guerra no Oriente Médio eleva energia, inflação volta a subir. Selic resiste em patamar alto. Bolsa sofre.</div>
+          <div class="sc-indicators">
+            <div class="sc-ind"><span class="sc-ind-label">Selic esperada</span><span style="color:#f87171">16–17%</span></div>
+            <div class="sc-ind"><span class="sc-ind-label">IPCA</span><span style="color:#f87171">6–7%</span></div>
+            <div class="sc-ind"><span class="sc-ind-label">Ibovespa</span><span style="color:#f87171">150–160k</span></div>
+            <div class="sc-ind"><span class="sc-ind-label">USD/BRL</span><span style="color:#f87171">5,80–6,20</span></div>
+            <div class="sc-ind"><span class="sc-ind-label">Melhor ativo</span><span style="color:#f87171">CDB · Tesouro Selic</span></div>
+          </div>
+        </div>
+        <div class="scenario-card neutro">
+          <div class="sc-label green">Base (Mais provável)</div>
+          <div class="sc-title">Desinflação Gradual</div>
+          <div class="sc-desc">BC corta Selic progressivamente. IPCA converge à meta. Bolsa sobe com queda dos juros reais.</div>
+          <div class="sc-indicators">
+            <div class="sc-ind"><span class="sc-ind-label">Selic fim 2026</span><span style="color:var(--verde)">12–13%</span></div>
+            <div class="sc-ind"><span class="sc-ind-label">IPCA</span><span style="color:var(--verde)">4,5–5%</span></div>
+            <div class="sc-ind"><span class="sc-ind-label">Ibovespa</span><span style="color:var(--verde)">185–200k</span></div>
+            <div class="sc-ind"><span class="sc-ind-label">USD/BRL</span><span style="color:var(--verde)">5,00–5,40</span></div>
+            <div class="sc-ind"><span class="sc-ind-label">Melhor ativo</span><span style="color:var(--verde)">IPCA+ · FIIs · Ações</span></div>
+          </div>
+        </div>
+        <div class="scenario-card otimista">
+          <div class="sc-label blue">Otimista</div>
+          <div class="sc-title">Crescimento e Fluxo Externo</div>
+          <div class="sc-desc">Queda rápida dos juros, inflação domada, fluxo estrangeiro robusto. Ibovespa supera 230k.</div>
+          <div class="sc-indicators">
+            <div class="sc-ind"><span class="sc-ind-label">Selic fim 2026</span><span style="color:#60a5fa">10–11%</span></div>
+            <div class="sc-ind"><span class="sc-ind-label">IPCA</span><span style="color:#60a5fa">3,5–4%</span></div>
+            <div class="sc-ind"><span class="sc-ind-label">Ibovespa</span><span style="color:#60a5fa">220–250k</span></div>
+            <div class="sc-ind"><span class="sc-ind-label">USD/BRL</span><span style="color:#60a5fa">4,60–4,90</span></div>
+            <div class="sc-ind"><span class="sc-ind-label">Melhor ativo</span><span style="color:#60a5fa">Ações · IPCA+ longo</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2><span class="icon" style="background:rgba(124,58,237,0.15)">📊</span> Simulação por Cenário (R$ 10k · 5 anos)</h2>
+      <div class="chart-wrap" style="height:280px">
+        <canvas id="scenarioChart" role="img" aria-label="Comparativo de retorno por cenário macro"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MERCADO ===== -->
+  <div id="mercado" class="section">
+    <div class="panel">
+      <h2><span class="icon" style="background:rgba(0,179,126,0.15)">📰</span> Panorama do Mercado — Abril 2026</h2>
+      <div class="news-grid">
+        <div class="news-card">
+          <div class="news-source">Banco Central · Mar/2026</div>
+          <div class="news-title">Selic cai para 14,75% no 1º corte do ciclo</div>
+          <div class="news-body">Após manter a taxa em 15% por cinco reuniões consecutivas, o Copom realizou o primeiro corte de 25bps em março de 2026. Novas reduções dependem da trajetória da inflação.</div>
+          <div class="news-date">Fonte: Nubank / BCB · Mar 2026</div>
+        </div>
+        <div class="news-card">
+          <div class="news-source">Focus BC · 20/Abr/2026</div>
+          <div class="news-title">Mercado projeta Selic em 13% e IPCA em 4,80%</div>
+          <div class="news-body">O Boletim Focus revisou para cima projeções de Selic e inflação. IPCA projetado em 4,80%, acima do teto da meta (4,50%). Câmbio esperado em R$ 5,30.</div>
+          <div class="news-date">Fonte: BlockTrends / BCB · Abr 2026</div>
+        </div>
+        <div class="news-card">
+          <div class="news-source">Renda Fixa · Abr/2026</div>
+          <div class="news-title">IPCA+ com juros reais acima de 7% ao ano</div>
+          <div class="news-body">Analistas do BTG e XP reafirmam atratividade do Tesouro IPCA+. Juros reais no Tesouro estão em ~7,5% a.a., historicamente elevados. MXRF11 com taxa IPCA+ 9,78%.</div>
+          <div class="news-date">Fonte: Investidor10 / Seu Dinheiro · Abr 2026</div>
+        </div>
+        <div class="news-card">
+          <div class="news-source">Ibovespa · 2026</div>
+          <div class="news-title">Bolsa sobe 30%+ em 2025; 2026 mira 185–200k</div>
+          <div class="news-body">O Ibovespa superou os 164 mil pontos em 2025, impulsionado por fluxo estrangeiro. Para 2026, XP projeta 185k e ASA projeta 300k de longo prazo com cortes na Selic.</div>
+          <div class="news-date">Fonte: Rico / XP / ASA · Jan 2026</div>
+        </div>
+        <div class="news-card">
+          <div class="news-source">FIIs · Abr/2026</div>
+          <div class="news-title">FIIs de papel resistem com IPCA+ elevado</div>
+          <div class="news-body">Mesmo com Selic em queda, FIIs de papel com CRIs indexados ao IPCA+ seguem atrativos. BTG recomenda exposição a FIIs com carteiras de crédito de alta qualidade.</div>
+          <div class="news-date">Fonte: Investidor10 · Abr 2026</div>
+        </div>
+        <div class="news-card">
+          <div class="news-source">Internacional · Mar/2026</div>
+          <div class="news-title">Guerra no Oriente Médio eleva incerteza global</div>
+          <div class="news-body">Conflito Irã-EUA gerou volatilidade nos mercados em março. Energia mais cara pressiona inflação global, levando analistas a maior cautela em títulos longos de renda fixa.</div>
+          <div class="news-date">Fonte: Empiricus / Seu Dinheiro · Mar 2026</div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2><span class="icon" style="background:rgba(26,86,219,0.15)">🌍</span> Contexto Internacional</h2>
+      <div class="assets-grid">
+        <div class="asset-card">
+          <div class="asset-header">
+            <div class="asset-name">EUA — Fed Funds</div>
+            <span class="asset-tag tag-rf">Internacional</span>
+          </div>
+          <div class="asset-rate" style="color:#60a5fa">4,25–4,50%</div>
+          <div class="asset-desc">Fed mantém juros após inflação resiliente. Treasury de 10 anos em ~4,6% a.a. Dólar forte pressiona emergentes.</div>
+        </div>
+        <div class="asset-card">
+          <div class="asset-header">
+            <div class="asset-name">Europa — BCE</div>
+            <span class="asset-tag tag-rf">Internacional</span>
+          </div>
+          <div class="asset-rate" style="color:#a78bfa">2,75%</div>
+          <div class="asset-desc">BCE em ciclo de cortes. Inflação na zona do euro desacelerando. Euro enfraquecido frente ao dólar.</div>
+        </div>
+        <div class="asset-card">
+          <div class="asset-header">
+            <div class="asset-name">China — Crescimento</div>
+            <span class="asset-tag tag-rv">Emergente</span>
+          </div>
+          <div class="asset-rate" style="color:#fbbf24">~4,5%</div>
+          <div class="asset-desc">PIB chinês crescendo 4,5%. Estímulos fiscais sustentam demanda por commodities — positivo para Brasil exportador.</div>
+        </div>
+        <div class="asset-card">
+          <div class="asset-header">
+            <div class="asset-name">Ouro (XAU/USD)</div>
+            <span class="asset-tag tag-rv">Commodities</span>
+          </div>
+          <div class="asset-rate" style="color:#fb923c">+30%</div>
+          <div class="asset-desc">Ouro superou bolsa, dólar e cripto em 2025. Em 2026, tensões geopolíticas mantêm o metal como reserva de valor.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const ATIVOS_RF = [
+  { nome:'CDB 100% CDI', tag:'Renda Fixa', taxa:'14,79%', taxaNum:0.1479, desc:'Seguro (FGC até R$250k). Tributado pelo IR regressivo. Liquidez depende do emissor.', risco:'Baixo', liquidez:'Varia', barFrac:0.75 },
+  { nome:'CDB 110% CDI', tag:'Renda Fixa', taxa:'16,27%', taxaNum:0.1627, desc:'Taxa mais alta, geralmente de bancos médios. Maior risco de crédito. FGC cobertura.', risco:'Baixo-Médio', liquidez:'Varia', barFrac:0.82 },
+  { nome:'CDB 120% CDI', tag:'Renda Fixa', taxa:'17,75%', taxaNum:0.1775, desc:'Retorno superior, típico de emissores com risco de crédito maior. Verifique o banco.', risco:'Médio', liquidez:'Varia', barFrac:0.88 },
+  { nome:'Tesouro Selic', tag:'Renda Fixa', taxa:'14,75% a.a.', taxaNum:0.1475, desc:'Liquidez diária, sem risco de crédito soberano. Melhor para reserva de emergência.', risco:'Baixo', liquidez:'Diária', barFrac:0.74 },
+  { nome:'Tesouro IPCA+ 7%', tag:'Renda Fixa', taxa:'IPCA + 7% a.a.', taxaNum:0.1180, desc:'Proteção real contra inflação. Juros reais em ~7,5% — patamar historicamente alto.', risco:'Baixo-Médio', liquidez:'Mercado', barFrac:0.70 },
+  { nome:'Tesouro Prefixado 13%', tag:'Renda Fixa', taxa:'13% a.a.', taxaNum:0.13, desc:'Trava a taxa hoje. Interessante se Selic cair além do esperado. Volatilidade de preço.', risco:'Médio', liquidez:'Mercado', barFrac:0.65 },
+];
+
+const ATIVOS_RV = [
+  { nome:'FIIs de Papel (MXRF11)', tag:'FII', taxa:'~DY 10,5%', taxaNum:0.105, desc:'Maior FII em cotistas (1,4M). Carteira de CRIs IPCA+9,78%. Dividendos mensais isentos de IR.', risco:'Médio', liquidez:'Diária (B3)', barFrac:0.60 },
+  { nome:'FIIs de Tijolo', tag:'FII', taxa:'~DY 7,5%', taxaNum:0.075, desc:'Shoppings, escritórios e galpões logísticos. Valorizados com queda da Selic. Dividendos isentos.', risco:'Médio', liquidez:'Diária (B3)', barFrac:0.50 },
+  { nome:'Ações (Ibovespa)', tag:'Renda Variável', taxa:'Projeção +20%', taxaNum:0.20, desc:'Ibovespa meta 185–200k para 2026. Setores sensíveis a juros: varejo, construção, consumo.', risco:'Alto', liquidez:'Diária (B3)', barFrac:0.95 },
+  { nome:'Ações — Dividendos', tag:'Renda Variável', taxa:'DY ~6–9%', taxaNum:0.075, desc:'Petrobras, bancos, utilities. Renda passiva + eventual valorização. Tributação 15% sobre ganho.', risco:'Médio-Alto', liquidez:'Diária (B3)', barFrac:0.55 },
+];
+
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+
+  if (id === 'ativos') renderAtivos();
+  if (id === 'comparar') renderComparar();
+  if (id === 'cenarios') renderCenarios();
+}
+
+function renderAtivos() {
+  const rfGrid = document.getElementById('rf-grid');
+  if (rfGrid.innerHTML) return;
+  rfGrid.innerHTML = ATIVOS_RF.map(a => `
+    <div class="asset-card">
+      <div class="asset-header">
+        <div class="asset-name">${a.nome}</div>
+        <span class="asset-tag tag-rf">${a.tag}</span>
+      </div>
+      <div class="asset-rate">${a.taxa}</div>
+      <div class="asset-desc">${a.desc}</div>
+      <div class="asset-bar-bg"><div class="asset-bar-fill" style="width:${(a.barFrac*100).toFixed(0)}%"></div></div>
+      <div class="asset-stats">
+        <span><span class="asset-stat-label">Risco: </span><span class="asset-stat-val">${a.risco}</span></span>
+        <span><span class="asset-stat-label">Liquidez: </span><span class="asset-stat-val">${a.liquidez}</span></span>
+      </div>
+    </div>`).join('');
+
+  const rvGrid = document.getElementById('rv-grid');
+  rvGrid.innerHTML = ATIVOS_RV.map(a => `
+    <div class="asset-card">
+      <div class="asset-header">
+        <div class="asset-name">${a.nome}</div>
+        <span class="asset-tag ${a.tag==='FII'?'tag-fii':'tag-rv'}">${a.tag}</span>
+      </div>
+      <div class="asset-rate" style="color:${a.tag==='FII'?'#fbbf24':'#a78bfa'}">${a.taxa}</div>
+      <div class="asset-desc">${a.desc}</div>
+      <div class="asset-bar-bg"><div class="asset-bar-fill" style="width:${(a.barFrac*100).toFixed(0)}%;background:${a.tag==='FII'?'#fbbf24':'#a78bfa'}"></div></div>
+      <div class="asset-stats">
+        <span><span class="asset-stat-label">Risco: </span><span class="asset-stat-val">${a.risco}</span></span>
+        <span><span class="asset-stat-label">Liquidez: </span><span class="asset-stat-val">${a.liquidez}</span></span>
+      </div>
+    </div>`).join('');
+}
+
+let growthChart=null, pieChart=null;
+
+function getParams() {
+  const ini = parseFloat(document.getElementById('aporte-inicial').value) || 0;
+  const mens = parseFloat(document.getElementById('aporte-mensal').value) || 0;
+  const meses = parseInt(document.getElementById('periodo').value) || 60;
+  const tipo = document.getElementById('tipo-invest').value;
+  const ir = parseFloat(document.getElementById('aliquota-ir').value);
+  return { ini, mens, meses, tipo, ir };
+}
+
+function getTaxaAnual(tipo) {
+  const m = {
+    cdb100: 0.1479, cdb110: 0.1627, cdb120: 0.1775,
+    selic: 0.1475, ipca7: 0.1480, prefixado13: 0.13,
+    fii: 0.105, acoes: 0.20
+  };
+  return m[tipo] || 0.1479;
+}
+
+function getTaxaNome(tipo) {
+  const m = {
+    cdb100:'CDB 100% CDI', cdb110:'CDB 110% CDI', cdb120:'CDB 120% CDI',
+    selic:'Tesouro Selic', ipca7:'Tesouro IPCA+ 7%', prefixado13:'Tesouro Prefixado 13%',
+    fii:'FIIs', acoes:'Ações (Ibovespa)'
+  };
+  return m[tipo] || tipo;
+}
+
+function simularSerie(ini, mens, meses, taxaAnual) {
+  const taxaMes = Math.pow(1 + taxaAnual, 1/12) - 1;
+  let saldo = ini;
+  const serie = [ini];
+  for (let i = 0; i < meses; i++) {
+    saldo = saldo * (1 + taxaMes) + mens;
+    serie.push(Math.round(saldo));
+  }
+  return serie;
+}
+
+function formatBRL(v) {
+  return 'R$ ' + Math.round(v).toLocaleString('pt-BR');
+}
+
+function simular() {
+  const { ini, mens, meses, tipo, ir } = getParams();
+  const taxa = getTaxaAnual(tipo);
+  const serie = simularSerie(ini, mens, meses, taxa);
+  const bruto = serie[meses];
+  const totalInvestido = ini + mens * meses;
+  const ganho = bruto - totalInvestido;
+  const isentoIR = (tipo === 'fii' || ir === 0);
+  const desconto = isentoIR ? 0 : ganho * ir;
+  const liquido = bruto - desconto;
+  const rentPct = ((liquido / totalInvestido - 1) * 100).toFixed(1);
+
+  document.getElementById('resultado-section').style.display = 'block';
+
+  const metrics = [
+    { label:'Valor Final Bruto', value: formatBRL(bruto), cls:'green' },
+    { label:'Valor Final Líquido', value: formatBRL(liquido), cls:'green' },
+    { label:'Total Investido', value: formatBRL(totalInvestido), cls:'' },
+    { label:'Ganho Bruto', value: formatBRL(ganho), cls:'orange' },
+    { label:'IR Estimado', value: isentoIR ? 'Isento' : formatBRL(desconto), cls:'' },
+    { label:'Rentabilidade Líquida', value: rentPct + '%', cls:'green' },
+  ];
+
+  document.getElementById('metrics-grid').innerHTML = metrics.map(m => `
+    <div class="metric-card">
+      <div class="label">${m.label}</div>
+      <div class="value ${m.cls}">${m.value}</div>
+    </div>`).join('');
+
+  const labels = Array.from({length: meses+1}, (_,i) => {
+    if (i === 0) return 'Início';
+    if (i % 12 === 0) return `${i/12}a`;
+    return '';
+  });
+
+  document.getElementById('chart-legend').innerHTML = `
+    <div class="legend-item"><div class="legend-dot" style="background:#00b37e"></div>${getTaxaNome(tipo)}</div>
+    <div class="legend-item"><div class="legend-dot" style="background:rgba(0,179,126,0.3)"></div>Total Investido</div>`;
+
+  const investidoSerie = Array.from({length: meses+1}, (_,i) => ini + mens * i);
+
+  if (growthChart) growthChart.destroy();
+  const ctx = document.getElementById('growthChart').getContext('2d');
+  growthChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: getTaxaNome(tipo),
+          data: serie,
+          borderColor: '#00b37e',
+          backgroundColor: 'rgba(0,179,126,0.08)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 0,
+          borderWidth: 2,
+        },
+        {
+          label: 'Total Investido',
+          data: investidoSerie,
+          borderColor: 'rgba(255,255,255,0.25)',
+          borderDash: [6,4],
+          fill: false,
+          tension: 0,
+          pointRadius: 0,
+          borderWidth: 1.5,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ' R$ ' + Math.round(ctx.raw).toLocaleString('pt-BR')
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color:'rgba(255,255,255,0.05)' }, ticks: { color:'#6b7280', maxRotation:0 } },
+        y: { grid: { color:'rgba(255,255,255,0.05)' }, ticks: { color:'#6b7280', callback: v => 'R$ '+Math.round(v/1000)+'k' } }
+      }
+    }
+  });
+
+  if (pieChart) pieChart.destroy();
+  const pCtx = document.getElementById('pieChart').getContext('2d');
+  pieChart = new Chart(pCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Capital Investido', 'Rendimento Bruto', 'IR (est.)'],
+      datasets: [{
+        data: [Math.round(totalInvestido), Math.round(ganho), Math.round(desconto)],
+        backgroundColor: ['#1a56db','#00b37e','#e02424'],
+        borderWidth: 0,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      cutout: '65%',
+    }
+  });
+
+  document.getElementById('pie-summary').innerHTML = `
+    <div class="summary-row">
+      <span style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:2px;background:#1a56db;display:inline-block"></span>Capital</span>
+      <strong>${formatBRL(totalInvestido)}</strong>
+    </div>
+    <div class="summary-row">
+      <span style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:2px;background:#00b37e;display:inline-block"></span>Rendimento</span>
+      <strong style="color:var(--verde)">${formatBRL(ganho)}</strong>
+    </div>
+    <div class="summary-row">
+      <span style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:2px;background:#e02424;display:inline-block"></span>IR estimado</span>
+      <strong style="color:#f87171">${isentoIR ? 'Isento' : formatBRL(desconto)}</strong>
+    </div>
+    <div class="summary-row">
+      <span><strong>Total Líquido</strong></span>
+      <strong style="color:var(--verde);font-size:1.1rem">${formatBRL(liquido)}</strong>
+    </div>`;
+}
+
+let compareChart = null;
+
+function renderComparar() {
+  const dados = [
+    { nome:'Poupança', taxa:0.063, ir:0, cor:'#6b7280' },
+    { nome:'CDB 100% CDI', taxa:0.1479, ir:0.15, cor:'#1a56db' },
+    { nome:'CDB 120% CDI', taxa:0.1775, ir:0.15, cor:'#3b82f6' },
+    { nome:'Tesouro Selic', taxa:0.1475, ir:0.15, cor:'#00b37e' },
+    { nome:'IPCA+ 7%', taxa:0.1480, ir:0.15, cor:'#10b981' },
+    { nome:'Prefixado 13%', taxa:0.13, ir:0.15, cor:'#6ee7b7' },
+    { nome:'FIIs (~DY 10,5%)', taxa:0.105, ir:0, cor:'#fbbf24' },
+    { nome:'Ações (proj. 20%)', taxa:0.20, ir:0.15, cor:'#a78bfa' },
+  ];
+
+  const ini=10000, mens=500, meses=60;
+  const resultados = dados.map(d => {
+    const serie = simularSerie(ini, mens, meses, d.taxa);
+    const bruto = serie[meses];
+    const investido = ini + mens * meses;
+    const ganho = bruto - investido;
+    const liquido = bruto - ganho * d.ir;
+    return { ...d, bruto, liquido, investido };
+  });
+
+  const sorted = [...resultados].sort((a,b) => b.liquido - a.liquido);
+
+  if (compareChart) compareChart.destroy();
+  const ctx = document.getElementById('compareBar').getContext('2d');
+  compareChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sorted.map(r => r.nome),
+      datasets: [{
+        label: 'Valor Final Líquido',
+        data: sorted.map(r => Math.round(r.liquido)),
+        backgroundColor: sorted.map(r => r.cor),
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => ' R$ ' + Math.round(c.raw).toLocaleString('pt-BR') } }
+      },
+      scales: {
+        x: { grid: { color:'rgba(255,255,255,0.05)' }, ticks: { color:'#6b7280', callback: v => 'R$'+Math.round(v/1000)+'k' } },
+        y: { grid: { display:false }, ticks: { color:'#e5e7eb', font:{ size:12 } } }
+      }
+    }
+  });
+
+  const maxLiq = Math.max(...resultados.map(r => r.liquido));
+  const tbody = document.getElementById('compare-tbody');
+  tbody.innerHTML = sorted.map(r => {
+    const rentPct = ((r.liquido / r.investido - 1)*100).toFixed(1);
+    const risco = r.nome.includes('Poupança')?'Baixo':r.nome.includes('Ações')?'Alto':r.nome.includes('FII')?'Médio':r.nome.includes('120')?'Médio':'Baixo';
+    const liq = r.nome.includes('Selic')||r.nome.includes('FII')||r.nome.includes('Ações')?'Diária':r.nome.includes('Poupança')?'Mensal':'Varia';
+    const riscoCls = risco==='Alto'?'risk-alto':risco==='Médio'?'risk-medio':'risk-baixo';
+    const barW = Math.round((r.liquido/maxLiq)*100);
+    return `<tr>
+      <td><strong>${r.nome}</strong></td>
+      <td style="color:#00b37e">${(r.taxa*100).toFixed(2)}%</td>
+      <td><strong>R$ ${Math.round(r.liquido).toLocaleString('pt-BR')}</strong><br><small style="color:#6b7280">+${rentPct}%</small></td>
+      <td><span class="badge ${riscoCls}">${risco}</span></td>
+      <td style="color:#9ca3af">${liq}</td>
+      <td>
+        <div class="progress-mini">
+          <div class="progress-bar"><div class="progress-fill" style="width:${barW}%;background:${r.cor}"></div></div>
+          <span style="font-size:12px;min-width:36px">${barW}%</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+let scenarioChart = null;
+
+function renderCenarios() {
+  const cenarios = [
+    { label:'Pessimista', dados: [
+      { nome:'CDB 100% CDI', taxa:0.165, ir:0.15, cor:'#3b82f6' },
+      { nome:'Tesouro Selic', taxa:0.16, ir:0.15, cor:'#00b37e' },
+      { nome:'IPCA+', taxa:0.12, ir:0.15, cor:'#10b981' },
+      { nome:'FIIs', taxa:0.085, ir:0, cor:'#fbbf24' },
+      { nome:'Ações', taxa:-0.10, ir:0, cor:'#a78bfa' },
+    ]},
+    { label:'Base', dados: [
+      { nome:'CDB 100% CDI', taxa:0.1479, ir:0.15, cor:'#3b82f6' },
+      { nome:'Tesouro Selic', taxa:0.1475, ir:0.15, cor:'#00b37e' },
+      { nome:'IPCA+', taxa:0.1480, ir:0.15, cor:'#10b981' },
+      { nome:'FIIs', taxa:0.105, ir:0, cor:'#fbbf24' },
+      { nome:'Ações', taxa:0.20, ir:0.15, cor:'#a78bfa' },
+    ]},
+    { label:'Otimista', dados: [
+      { nome:'CDB 100% CDI', taxa:0.11, ir:0.15, cor:'#3b82f6' },
+      { nome:'Tesouro Selic', taxa:0.105, ir:0.15, cor:'#00b37e' },
+      { nome:'IPCA+', taxa:0.115, ir:0.15, cor:'#10b981' },
+      { nome:'FIIs', taxa:0.13, ir:0, cor:'#fbbf24' },
+      { nome:'Ações', taxa:0.35, ir:0.15, cor:'#a78bfa' },
+    ]},
+  ];
+
+  const ini=10000, mens=0, meses=60;
+  const ativos = cenarios[0].dados.map(d => d.nome);
+  const colors = cenarios[0].dados.map(d => d.cor);
+
+  const datasets = ativos.map((ativo, ai) => ({
+    label: ativo,
+    data: cenarios.map(c => {
+      const d = c.dados[ai];
+      const serie = simularSerie(ini, mens, meses, d.taxa);
+      const bruto = serie[meses];
+      const ganho = bruto - ini;
+      return Math.round(bruto - ganho * d.ir);
+    }),
+    backgroundColor: colors[ai],
+    borderRadius: 4,
+    borderSkipped: false,
+  }));
+
+  if (scenarioChart) scenarioChart.destroy();
+  const ctx = document.getElementById('scenarioChart').getContext('2d');
+  scenarioChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: cenarios.map(c => c.label),
+      datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, labels: { color:'#9ca3af', font:{ size:11 }, boxWidth:10, padding:12 } },
+        tooltip: { callbacks: { label: c => ' '+c.dataset.label+': R$ '+Math.round(c.raw).toLocaleString('pt-BR') } }
+      },
+      scales: {
+        x: { grid: { display:false }, ticks: { color:'#e5e7eb' } },
+        y: { grid: { color:'rgba(255,255,255,0.05)' }, ticks: { color:'#6b7280', callback: v => 'R$'+Math.round(v/1000)+'k' } }
+      }
+    }
+  });
+}
+
+simular();
+</script>
+</body>
+</html>
